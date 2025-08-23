@@ -132,6 +132,27 @@ void display() {
     printf("\n");
 }
 
+
+void search(int value) {
+    struct node *temp = head;
+    int position = 1;
+    int found = 0;
+
+    while (temp != NULL) {
+        if (temp->data == value) {
+            printf("Value %d found at position %d\n", value, position);
+            found = 1;
+        }
+        temp = temp->link;
+        position++;
+    }
+
+    if (!found) {
+        printf("Value %d not found in the list.\n", value);
+    }
+}
+
+
 int main() {
     int choice, value, position;
     char cont;
@@ -145,6 +166,7 @@ int main() {
         printf("5. Delete at End\n");
         printf("6. Delete at Position\n");
         printf("7. Display\n");
+        printf("8. Search\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
@@ -178,6 +200,12 @@ int main() {
             case 7:
                 display();
                 break;
+            case 8:
+                printf("Enter value to search: ");
+                scanf("%d", &value);
+                search(value);
+                break;
+    
             default:
                 printf("Invalid choice!\n");
         }
