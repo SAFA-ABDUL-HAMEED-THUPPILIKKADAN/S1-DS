@@ -4,54 +4,24 @@
 struct node
 {
     int data;
-    struct node *link;
+    struct node *next;
 };
 
 struct node *head = NULL;
 
-struct node *create_node(int data, struct node *link)
+
+struct node *create_node(int data)
 {
     struct node *new_node = (struct node *)malloc(sizeof(struct node));
     new_node->data = data;
-    new_node->link = link;
+    new_node->next = new_node; 
     return new_node;
 }
 
+
 void insert_at_beginning(int value)
 {
-    struct node *new_node = create_node(value, head);
-    head = new_node;
-}
-
-void insert_at_position(int value, int position)
-{
-    struct node *new_node;
-    struct node *temp = head;
-
-    if (position == 1)
-    {
-        insert_at_beginning(value);
-        return;
-    }
-
-    for (int i = 1; i < position - 1 && temp != NULL; i++)
-    {
-        temp = temp->link;
-    }
-
-    if (temp == NULL)
-    {
-        printf("Position out of range\n");
-        return;
-    }
-
-    new_node = create_node(value, temp->link);
-    temp->link = new_node;
-}
-
-void insert_at_end(int value)
-{
-    struct node *new_node = create_node(value, NULL);
+    struct node *new_node = create_node(value);
 
     if (head == NULL)
     {
@@ -59,11 +29,58 @@ void insert_at_end(int value)
         return;
     }
 
-    struct node *i;
-    for (i = head; i->link != NULL; i = i->link)
-        ;
-    i->link = new_node;
+    struct node *last = head;
+    while (last->next != head)
+        last = last->next;
+
+    new_node->next = head;
+    last->next = new_node;
+    head = new_node;
 }
+
+
+void insert_at_end(int value)
+{
+    struct node *new_node = create_node(value);
+
+    if (head == NULL)
+    {
+        head = new_node;
+        return;
+    }
+
+    struct node *last = head;
+    while (last->next != head)
+        last = last->next;
+
+    last->next = new_node;
+    new_node->next = head;
+}
+
+
+void insert_at_position(int value, int position)
+{
+    if (position == 1)
+    {
+        insert_at_beginning(value);
+        return;
+    }
+
+    struct node *temp = head;
+    for (int i = 1; i < position - 1 && temp->next != head; i++)
+        temp = temp->next;
+
+    if (temp->next == head && position > 2)
+    {
+        printf("Position out of range\n");
+        return;
+    }
+
+    struct node *new_node = create_node(value);
+    new_node->next = temp->next;
+    temp->next = new_node;
+}
+
 
 void delete_at_beginning()
 {
@@ -73,10 +90,53 @@ void delete_at_beginning()
         return;
     }
 
+    if (head->next == head)
+    {
+        free(head);
+        head = NULL;
+        return;
+    }
+
+    struct node *last = head;
+    while (last->next != head)
+        last = last->next;
+
     struct node *temp = head;
-    head = head->link;
+    head = head->next;
+    last->next = head;
+
     free(temp);
 }
+
+
+void delete_at_end()
+{
+    if (head == NULL)
+    {
+        printf("List is empty. Nothing to delete.\n");
+        return;
+    }
+
+    if (head->next == head)
+    {
+        free(head);
+        head = NULL;
+        return;
+    }
+
+    struct node *temp = head;
+    struct node *prev = NULL;
+
+    while (temp->next != head)
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    prev->next = head;
+    free(temp);
+}
+
 
 void delete_at_position(int position)
 {
@@ -95,88 +155,65 @@ void delete_at_position(int position)
     struct node *temp = head;
     struct node *prev = NULL;
 
-    for (int i = 1; i < position && temp != NULL; i++)
+    for (int i = 1; i < position && temp->next != head; i++)
     {
         prev = temp;
-        temp = temp->link;
+        temp = temp->next;
     }
 
-    if (temp == NULL)
+    if (temp == head)
     {
         printf("Position out of range\n");
         return;
     }
 
-    prev->link = temp->link;
+    prev->next = temp->next;
     free(temp);
 }
 
-void delete_at_end()
-{
-    if (head == NULL)
-    {
-        printf("List is empty. Nothing to delete.\n");
-        return;
-    }
-
-    if (head->link == NULL)
-    {
-        free(head);
-        head = NULL;
-        return;
-    }
-
-    struct node *temp = head;
-    struct node *prev = NULL;
-
-    while (temp->link != NULL)
-    {
-        prev = temp;
-        temp = temp->link;
-    }
-
-    prev->link = NULL;
-    free(temp);
-}
 
 void display()
 {
-
-    printf("Linked List Elements are:\n");
     if (head == NULL)
     {
         printf("List is empty.\n");
         return;
     }
 
-    for (struct node *i = head; i != NULL; i = i->link)
+    printf("Circular Singly Linked List Elements:\n");
+    struct node *temp = head;
+    do
     {
-        printf("%d ", i->data);
-    }
+        printf("%d ", temp->data);
+        temp = temp->next;
+    } while (temp != head);
     printf("\n");
 }
 
 void search(int value)
 {
-    struct node *temp = head;
-    int position = 1;
-    int found = 0;
+    if (head == NULL)
+    {
+        printf("List is empty.\n");
+        return;
+    }
 
-    while (temp != NULL)
+    struct node *temp = head;
+    int position = 1, found = 0;
+
+    do
     {
         if (temp->data == value)
         {
             printf("Value %d found at position %d\n", value, position);
             found = 1;
         }
-        temp = temp->link;
+        temp = temp->next;
         position++;
-    }
+    } while (temp != head);
 
     if (!found)
-    {
         printf("Value %d not found in the list.\n", value);
-    }
 }
 
 int main()
@@ -186,7 +223,7 @@ int main()
 
     do
     {
-        printf("\n--- Linked List Operations ---\n");
+        printf("\n--- Circular Singly Linked List Operations ---\n");
         printf("1. Insert at Beginning\n");
         printf("2. Insert at End\n");
         printf("3. Insert at Position\n");
@@ -234,13 +271,12 @@ int main()
             scanf("%d", &value);
             search(value);
             break;
-
         default:
             printf("Invalid choice!\n");
         }
 
         printf("Do you want to continue? (y/n): ");
-        scanf(" %c", &cont); // space before %c to consume newline character
+        scanf(" %c", &cont);
 
     } while (cont == 'y' || cont == 'Y');
 

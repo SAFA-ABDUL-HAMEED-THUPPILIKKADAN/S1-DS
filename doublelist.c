@@ -4,39 +4,65 @@
 struct node
 {
     int data;
-    struct node *link;
+    struct node *prev;
+    struct node *next;
 };
 
 struct node *head = NULL;
 
-struct node *create_node(int data, struct node *link)
+
+struct node *create_node(int data)
 {
     struct node *new_node = (struct node *)malloc(sizeof(struct node));
     new_node->data = data;
-    new_node->link = link;
+    new_node->prev = NULL;
+    new_node->next = NULL;
     return new_node;
 }
 
+
 void insert_at_beginning(int value)
 {
-    struct node *new_node = create_node(value, head);
+    struct node *new_node = create_node(value);
+    if (head != NULL)
+    {
+        new_node->next = head;
+        head->prev = new_node;
+    }
     head = new_node;
 }
 
+void insert_at_end(int value)
+{
+    struct node *new_node = create_node(value);
+    if (head == NULL)
+    {
+        head = new_node;
+        return;
+    }
+
+    struct node *temp = head;
+    while (temp->next != NULL)
+    {
+        temp = temp->next;
+    }
+    temp->next = new_node;
+    new_node->prev = temp;
+}
+
+
 void insert_at_position(int value, int position)
 {
-    struct node *new_node;
-    struct node *temp = head;
-
     if (position == 1)
     {
         insert_at_beginning(value);
         return;
     }
 
+    struct node *temp = head;
     for (int i = 1; i < position - 1 && temp != NULL; i++)
     {
-        temp = temp->link;
+        temp = temp->next;
     }
 
     if (temp == NULL)
@@ -45,25 +71,18 @@ void insert_at_position(int value, int position)
         return;
     }
 
-    new_node = create_node(value, temp->link);
-    temp->link = new_node;
-}
+    struct node *new_node = create_node(value);
+    new_node->next = temp->next;
+    new_node->prev = temp;
 
-void insert_at_end(int value)
-{
-    struct node *new_node = create_node(value, NULL);
-
-    if (head == NULL)
+    if (temp->next != NULL)
     {
-        head = new_node;
-        return;
+        temp->next->prev = new_node;
     }
 
-    struct node *i;
-    for (i = head; i->link != NULL; i = i->link)
-        ;
-    i->link = new_node;
+    temp->next = new_node;
 }
+
 
 void delete_at_beginning()
 {
@@ -74,9 +93,37 @@ void delete_at_beginning()
     }
 
     struct node *temp = head;
-    head = head->link;
+    head = head->next;
+    if (head != NULL)
+        head->prev = NULL;
     free(temp);
 }
+
+
+void delete_at_end()
+{
+    if (head == NULL)
+    {
+        printf("List is empty. Nothing to delete.\n");
+        return;
+    }
+
+    if (head->next == NULL)
+    {
+        free(head);
+        head = NULL;
+        return;
+    }
+
+    struct node *temp = head;
+    while (temp->next != NULL)
+    {
+        temp = temp->next;
+    }
+    temp->prev->next = NULL;
+    free(temp);
+}
+
 
 void delete_at_position(int position)
 {
@@ -93,12 +140,9 @@ void delete_at_position(int position)
     }
 
     struct node *temp = head;
-    struct node *prev = NULL;
-
     for (int i = 1; i < position && temp != NULL; i++)
     {
-        prev = temp;
-        temp = temp->link;
+        temp = temp->next;
     }
 
     if (temp == NULL)
@@ -107,54 +151,37 @@ void delete_at_position(int position)
         return;
     }
 
-    prev->link = temp->link;
+    if (temp->next != NULL)
+    {
+        temp->next->prev = temp->prev;
+    }
+    if (temp->prev != NULL)
+    {
+        temp->prev->next = temp->next;
+    }
+
     free(temp);
 }
 
-void delete_at_end()
-{
-    if (head == NULL)
-    {
-        printf("List is empty. Nothing to delete.\n");
-        return;
-    }
-
-    if (head->link == NULL)
-    {
-        free(head);
-        head = NULL;
-        return;
-    }
-
-    struct node *temp = head;
-    struct node *prev = NULL;
-
-    while (temp->link != NULL)
-    {
-        prev = temp;
-        temp = temp->link;
-    }
-
-    prev->link = NULL;
-    free(temp);
-}
 
 void display()
 {
-
-    printf("Linked List Elements are:\n");
     if (head == NULL)
     {
         printf("List is empty.\n");
         return;
     }
 
-    for (struct node *i = head; i != NULL; i = i->link)
+    printf("Doubly Linked List Elements:\n");
+    struct node *temp = head;
+    while (temp != NULL)
     {
-        printf("%d ", i->data);
+        printf("%d ", temp->data);
+        temp = temp->next;
     }
     printf("\n");
 }
+
 
 void search(int value)
 {
@@ -169,7 +196,7 @@ void search(int value)
             printf("Value %d found at position %d\n", value, position);
             found = 1;
         }
-        temp = temp->link;
+        temp = temp->next;
         position++;
     }
 
@@ -186,7 +213,7 @@ int main()
 
     do
     {
-        printf("\n--- Linked List Operations ---\n");
+        printf("\n--- Doubly Linked List Operations ---\n");
         printf("1. Insert at Beginning\n");
         printf("2. Insert at End\n");
         printf("3. Insert at Position\n");
@@ -234,13 +261,12 @@ int main()
             scanf("%d", &value);
             search(value);
             break;
-
         default:
             printf("Invalid choice!\n");
         }
 
         printf("Do you want to continue? (y/n): ");
-        scanf(" %c", &cont); // space before %c to consume newline character
+        scanf(" %c", &cont);
 
     } while (cont == 'y' || cont == 'Y');
 
