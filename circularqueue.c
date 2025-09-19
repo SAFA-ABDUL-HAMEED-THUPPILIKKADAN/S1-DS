@@ -1,18 +1,18 @@
 #include <stdio.h>
-#define MAX 5   // you can change size
+#define MAX 5   
 
 int queue[MAX];
 int front = -1, rear = -1;
 
 void enqueue(int value)
 {
-    if ((rear + 1) % MAX == front)   // Queue full
+    if ((rear + 1) % MAX == front)   
     {
         printf("Queue Overflow! Cannot insert %d\n", value);
         return;
     }
 
-    if (front == -1) // first element
+    if (front == -1) 
     {
         front = rear = 0;
     }
@@ -26,14 +26,14 @@ void enqueue(int value)
 
 void dequeue()
 {
-    if (front == -1) // empty
+    if (front == -1)
     {
         printf("Queue Underflow! Nothing to delete.\n");
         return;
     }
 
     int x = queue[front];
-    if (front == rear) // only one element
+    if (front == rear) 
     {
         front = rear = -1;
     }
